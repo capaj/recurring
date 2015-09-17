@@ -1,11 +1,11 @@
 /*global describe:true, it:true, before:true, after:true */
 
 var
-	demand  = require('must'),
-	parser  = require('../lib/parser'),
+	demand = require('must'),
+	parser = require('../lib/parser'),
 	recurly = require('../lib/recurly')(),
-	util    = require('util'),
-	uuid    = require('node-uuid')
+	util = require('util'),
+	uuid = require('node-uuid')
 	;
 
 // This recurly account is an empty test account connected to their
@@ -17,30 +17,25 @@ var config =
 	subdomain: 'recurring-test'
 };
 
-var noopFunc = function()
-{
+var noopFunc = function () {
 };
 
 var rparser, plan, account, subscription;
 var old_account_id = 'test-account-1';
 var fresh_account_id;
 
-before(function()
-{
+before(function () {
 	rparser = parser.createParser();
 	recurly.setAPIKey(config.apikey);
 });
 
-describe('Plan', function()
-{
+describe('Plan', function () {
 	var cached;
 
 	// create a plan
 
-	it('can fetch all plans from the test Recurly account', function(done)
-	{
-		recurly.Plan.all(function(plans)
-		{
+	it('can fetch all plans from the test Recurly account', function (done) {
+		recurly.Plan.all(function (plans) {
 			plans.must.be.an.object();
 			var plan_codes = Object.keys(plans);
 			plan_codes.length.must.be.above(0);
@@ -50,12 +45,10 @@ describe('Plan', function()
 		});
 	});
 
-	it('can fetch a single plan', function(done)
-	{
+	it('can fetch a single plan', function (done) {
 		plan = new recurly.Plan();
 		plan.id = cached[0];
-		plan.fetch(function(err)
-		{
+		plan.fetch(function (err) {
 			demand(err).not.exist();
 			plan.href.length.must.be.above(0);
 			plan.must.have.property('name');
@@ -69,12 +62,10 @@ describe('Plan', function()
 	// modify
 });
 
-describe('Account', function()
-{
+describe('Account', function () {
 	var cached;
 
-	it('can create an account', function(done)
-	{
+	it('can create an account', function (done) {
 		fresh_account_id = uuid.v4();
 		var data =
 		{
@@ -85,8 +76,7 @@ describe('Account', function()
 			company_name: 'Yoyodyne Propulsion Systems',
 		};
 
-		recurly.Account.create(data, function(err, newAccount)
-		{
+		recurly.Account.create(data, function (err, newAccount) {
 			demand(err).not.exist();
 			newAccount.must.be.an.object();
 			newAccount.id.must.equal(fresh_account_id);
@@ -95,25 +85,21 @@ describe('Account', function()
 		});
 	});
 
-	it('can close an account', function(done)
-	{
+	it('can close an account', function (done) {
 		account = new recurly.Account();
 		account.id = fresh_account_id;
 
-		account.close(function(err, closed)
-		{
+		account.close(function (err, closed) {
 			demand(err).not.exist();
 			closed.must.equal(true);
 			done();
 		});
 	});
 
-	it('can create or reopen a previously-closed account, transparently', function(done)
-	{
-		var data = { id: fresh_account_id };
+	it('can create or reopen a previously-closed account, transparently', function (done) {
+		var data = {id: fresh_account_id};
 
-		recurly.Account.create(data, function(err, newAccount)
-		{
+		recurly.Account.create(data, function (err, newAccount) {
 			demand(err).not.exist();
 			newAccount.must.be.an.object();
 			newAccount.first_name.must.equal('John'); // from old data
@@ -122,12 +108,10 @@ describe('Account', function()
 		});
 	});
 
-	it('can fetch a single account', function(done)
-	{
+	it('can fetch a single account', function (done) {
 		account = new recurly.Account();
 		account.id = fresh_account_id;
-		account.fetch(function(err)
-		{
+		account.fetch(function (err) {
 			demand(err).not.exist();
 			account.must.be.an.object();
 			account.email.must.equal('test@example.com');
@@ -136,10 +120,8 @@ describe('Account', function()
 		});
 	});
 
-	it('can fetch all accounts from the test Recurly account', function(done)
-	{
-		recurly.Account.all(function(accounts)
-		{
+	it('can fetch all accounts from the test Recurly account', function (done) {
+		recurly.Account.all(function (accounts) {
 			accounts.must.be.an.object();
 			var uuids = Object.keys(accounts);
 			uuids.length.must.be.above(0);
@@ -149,18 +131,15 @@ describe('Account', function()
 		});
 	});
 
-	it('can update an account', function(done)
-	{
+	it('can update an account', function (done) {
 		account.company_name = 'Yoyodyne Propulsion, International';
-		account.update(function(err, updated)
-		{
+		account.update(function (err, updated) {
 			demand(err).not.exist();
 			updated.must.be.an.object();
 
 			var testAcc = new recurly.Account();
 			testAcc.id = account.id;
-			testAcc.fetch(function(err)
-			{
+			testAcc.fetch(function (err) {
 				demand(err).not.exist();
 				testAcc.company_name.must.equal(account.company_name);
 				done();
@@ -169,12 +148,10 @@ describe('Account', function()
 	});
 });
 
-describe('BillingInfo', function()
-{
+describe('BillingInfo', function () {
 	var binfo;
 
-	it('can retrieve billing info for an account that does not exist', function(done)
-	{
+	it('can retrieve billing info for an account that does not exist', function (done) {
 		var data =
 		{
 			id: uuid.v4(),
@@ -184,11 +161,9 @@ describe('BillingInfo', function()
 			company_name: 'Yoyodyne Propulsion Systems',
 		};
 
-		recurly.Account.create(data, function(err, newAccount)
-		{
+		recurly.Account.create(data, function (err, newAccount) {
 			demand(err).not.exist();
-			newAccount.fetchBillingInfo(function(err, info)
-			{
+			newAccount.fetchBillingInfo(function (err, info) {
 				err.must.exist();
 				err.message.must.equal('not_found');
 				demand(info).not.exist();
@@ -197,8 +172,7 @@ describe('BillingInfo', function()
 		});
 	});
 
-	it('can add billing info to an account and skip card authorization', function(done)
-	{
+	it('can add billing info to an account and skip card authorization', function (done) {
 		binfo = new recurly.BillingInfo();
 		binfo.account_code = fresh_account_id;
 		binfo.skipAuthorization = true;
@@ -218,16 +192,14 @@ describe('BillingInfo', function()
 			zip: '94102'
 		};
 
-		binfo.update(billing_data, function(err)
-		{
+		binfo.update(billing_data, function (err) {
 			demand(err).not.exist();
 			binfo.last_four.must.equal('0077');
 			done();
 		});
 	});
 
-	it('can add billing info to an account', function(done)
-	{
+	it('can add billing info to an account', function (done) {
 		binfo = new recurly.BillingInfo();
 		binfo.account_code = fresh_account_id;
 		var billing_data =
@@ -246,21 +218,18 @@ describe('BillingInfo', function()
 			zip: '94102'
 		};
 
-		binfo.update(billing_data, function(err)
-		{
+		binfo.update(billing_data, function (err) {
 			demand(err).not.exist();
 			binfo.last_four.must.equal('1111');
 			done();
 		});
 	});
 
-	it('throws an error when missing a required billing data field', function(done)
-	{
+	it('throws an error when missing a required billing data field', function (done) {
 		var binfo2 = new recurly.BillingInfo();
 		binfo2.account_code = fresh_account_id;
 
-		var wrong = function()
-		{
+		var wrong = function () {
 			var inadequate =
 			{
 				first_name: account.first_name,
@@ -272,10 +241,8 @@ describe('BillingInfo', function()
 		done();
 	});
 
-	it('can fetch the billing info for an account', function(done)
-	{
-		account.fetchBillingInfo(function(err, info)
-		{
+	it('can fetch the billing info for an account', function (done) {
+		account.fetchBillingInfo(function (err, info) {
 			demand(err).not.exist();
 			info.first_name.must.equal(account.first_name);
 			info.last_four.must.equal('1111');
@@ -285,21 +252,18 @@ describe('BillingInfo', function()
 	});
 });
 
-describe('Subscription', function()
-{
+describe('Subscription', function () {
 	var cached;
 
-	it('can create a subscription for an account', function(done)
-	{
+	it('can create a subscription for an account', function (done) {
 		var data = {
 			plan_code: config.plan_code,
-			account: { account_code: account.id },
+			account: {account_code: account.id},
 			currency: 'USD',
 			quantity: 10,
 		};
 
-		recurly.Subscription.create(data, function(err, newsub)
-		{
+		recurly.Subscription.create(data, function (err, newsub) {
 			demand(err).not.exist();
 			newsub.id.must.exist();
 			newsub.quantity.must.equal(10);
@@ -311,10 +275,8 @@ describe('Subscription', function()
 		});
 	});
 
-	it('can fetch all subscriptions associated with an account', function(done)
-	{
-		account.fetchSubscriptions(function(err, subscriptions)
-		{
+	it('can fetch all subscriptions associated with an account', function (done) {
+		account.fetchSubscriptions(function (err, subscriptions) {
 			demand(err).not.exist();
 			subscriptions.must.be.an.array();
 			cached = subscriptions;
@@ -322,13 +284,11 @@ describe('Subscription', function()
 		});
 	});
 
-	it('can fetch a single subscription', function(done)
-	{
+	it('can fetch a single subscription', function (done) {
 		var uuid = cached[0].uuid;
 		subscription = new recurly.Subscription();
 		subscription.id = uuid;
-		subscription.fetch(function(err)
-		{
+		subscription.fetch(function (err) {
 			demand(err).not.exist();
 			subscription.must.have.property('_resources');
 			subscription._resources.must.be.an.object();
@@ -339,26 +299,22 @@ describe('Subscription', function()
 		});
 	});
 
-	it('throws an error when attempting to modify a subscription without a timeframe', function(done)
-	{
-		var wrong = function()
-		{
-			subscription.update({ inadequate: true }, noopFunc);
+	it('throws an error when attempting to modify a subscription without a timeframe', function (done) {
+		var wrong = function () {
+			subscription.update({inadequate: true}, noopFunc);
 		};
 		wrong.must.throw(Error);
 		done();
 	});
 
-	it('can modify a subscription', function(done)
-	{
+	it('can modify a subscription', function (done) {
 		var mods =
 		{
 			timeframe: 'now',
 			quantity: subscription.quantity + 3,
 		};
 
-		subscription.update(mods, function(err)
-		{
+		subscription.update(mods, function (err) {
 			demand(err).not.exist();
 			subscription.must.be.an.object();
 			subscription.quantity.must.equal(mods.quantity);
@@ -367,10 +323,8 @@ describe('Subscription', function()
 		});
 	});
 
-	it('can cancel a subscription', function(done)
-	{
-		subscription.cancel(function(err)
-		{
+	it('can cancel a subscription', function (done) {
+		subscription.cancel(function (err) {
 			demand(err).not.exist();
 			subscription.state.must.equal('canceled');
 			subscription.canceled_at.must.be.a.date();
@@ -380,10 +334,8 @@ describe('Subscription', function()
 		});
 	});
 
-	it('can reactivate a subscription', function(done)
-	{
-		subscription.reactivate(function(err)
-		{
+	it('can reactivate a subscription', function (done) {
+		subscription.reactivate(function (err) {
 			demand(err).not.exist();
 			subscription.state.must.equal('active');
 			subscription.activated_at.must.be.a.date();
@@ -395,23 +347,19 @@ describe('Subscription', function()
 		});
 	});
 
-	it('can postpone a subscription', function(done)
-	{
+	it('can postpone a subscription', function (done) {
 		var now = new Date();
 		var nextDate = new Date(now.getUTCFullYear(), now.getUTCMonth() + 1, 1);
 
-		subscription.postpone(nextDate, function(err)
-		{
+		subscription.postpone(nextDate, function (err) {
 			demand(err).not.exist();
 			nextDate.getTime().must.equal(subscription.current_period_ends_at.getTime());
 			done();
 		});
 	});
 
-	it('can terminate a subscription without a refund', function(done)
-	{
-		subscription.terminate('none', function(err)
-		{
+	it('can terminate a subscription without a refund', function (done) {
+		subscription.terminate('none', function (err) {
 			demand(err).not.exist();
 			subscription.state.must.equal('expired');
 			subscription.canceled_at.must.be.a.date();
@@ -420,12 +368,10 @@ describe('Subscription', function()
 	});
 });
 
-describe('Coupons', function()
-{
+describe('Coupons', function () {
 	var coupon, coupon_code;
 
-	it('can create a coupon', function(done)
-	{
+	it('can create a coupon', function (done) {
 		coupon_code = uuid.v4();
 		var data =
 		{
@@ -438,8 +384,7 @@ describe('Coupons', function()
 			hosted_description: 'This is a description of a coupon',
 		};
 
-		recurly.Coupon.create(data, function(err, coup)
-		{
+		recurly.Coupon.create(data, function (err, coup) {
 			demand(err).not.exist();
 			coup.id.must.equal(coupon_code);
 			coup.state.must.equal('redeemable');
@@ -449,12 +394,10 @@ describe('Coupons', function()
 		});
 	});
 
-	it('can fetch a coupon', function(done)
-	{
+	it('can fetch a coupon', function (done) {
 		coupon = new recurly.Coupon();
 		coupon.id = coupon_code;
-		coupon.fetch(function(err)
-		{
+		coupon.fetch(function (err) {
 			demand(err).not.exist();
 			coupon.id.must.equal(coupon_code);
 			coupon.state.must.equal('redeemable');
@@ -465,16 +408,14 @@ describe('Coupons', function()
 		});
 	});
 
-	it('can redeem a coupon', function(done)
-	{
+	it('can redeem a coupon', function (done) {
 		var options =
 		{
 			account_code: fresh_account_id,
 			currency: 'USD'
 		};
 
-		coupon.redeem(options, function(err, redemption)
-		{
+		coupon.redeem(options, function (err, redemption) {
 			demand(err).not.exist();
 			redemption._resources.coupon.must.equal(coupon.href);
 			redemption.single_use.must.equal(true);
@@ -484,24 +425,19 @@ describe('Coupons', function()
 
 	// examine a redemption object
 
-	it('can delete a coupon', function(done)
-	{
-		coupon.destroy(function(err)
-		{
+	it('can delete a coupon', function (done) {
+		coupon.destroy(function (err) {
 			demand(err).not.exist();
 			done();
 		});
 	});
 });
 
-describe('Transactions', function()
-{
+describe('Transactions', function () {
 	var trans1, trans2;
 
-	it('requires an account parameter with account code', function()
-	{
-		var wrong = function()
-		{
+	it('requires an account parameter with account code', function () {
+		var wrong = function () {
 			var inadequate =
 			{
 				amount_in_cents: 10,
@@ -512,13 +448,11 @@ describe('Transactions', function()
 		wrong.must.throw(Error);
 	});
 
-	it('requires an amount_in_cents parameter when creating a transaction', function()
-	{
-		var wrong = function()
-		{
+	it('requires an amount_in_cents parameter when creating a transaction', function () {
+		var wrong = function () {
 			var inadequate =
 			{
-				account: { account_code: fresh_account_id },
+				account: {account_code: fresh_account_id},
 				currency: 'USD',
 			};
 			recurly.Transaction.create(inadequate, noopFunc);
@@ -526,13 +460,11 @@ describe('Transactions', function()
 		wrong.must.throw(Error);
 	});
 
-	it('requires an currency parameter when creating a transaction', function()
-	{
-		var wrong = function()
-		{
+	it('requires an currency parameter when creating a transaction', function () {
+		var wrong = function () {
 			var inadequate =
 			{
-				account: { account_code: fresh_account_id },
+				account: {account_code: fresh_account_id},
 				amount_in_cents: 10,
 			};
 			recurly.Transaction.create(inadequate, noopFunc);
@@ -540,17 +472,15 @@ describe('Transactions', function()
 		wrong.must.throw(Error);
 	});
 
-	it('can create a transaction', function(done)
-	{
+	it('can create a transaction', function (done) {
 		var options =
 		{
 			amount_in_cents: 100,
 			currency: 'USD',
-			account: { account_code: fresh_account_id }
+			account: {account_code: fresh_account_id}
 		};
 
-		recurly.Transaction.create(options, function(err, transaction)
-		{
+		recurly.Transaction.create(options, function (err, transaction) {
 			demand(err).not.exist();
 			transaction.action.must.equal('purchase');
 			transaction.amount_in_cents.must.equal(100);
@@ -568,10 +498,8 @@ describe('Transactions', function()
 		});
 	});
 
-	it('can refund a transaction fully', function(done)
-	{
-		trans1.refund(function(err)
-		{
+	it('can refund a transaction fully', function (done) {
+		trans1.refund(function (err) {
 			demand(err).not.exist();
 			trans1.status.must.equal('void');
 			trans1.voidable.must.equal(false);
@@ -580,20 +508,17 @@ describe('Transactions', function()
 		});
 	});
 
-	it('can refund a transaction partially', function(done)
-	{
+	it('can refund a transaction partially', function (done) {
 		var options =
 		{
 			amount_in_cents: 500,
 			currency: 'USD',
-			account: { account_code: fresh_account_id }
+			account: {account_code: fresh_account_id}
 		};
 
-		recurly.Transaction.create(options, function(err, transaction)
-		{
+		recurly.Transaction.create(options, function (err, transaction) {
 			demand(err).not.exist();
-			transaction.refund(250, function(err)
-			{
+			transaction.refund(250, function (err) {
 				demand(err).not.exist();
 				transaction.amount_in_cents.must.equal(250);
 				transaction.status.must.equal('success');
@@ -606,11 +531,9 @@ describe('Transactions', function()
 
 });
 
-describe('RecurlyError', function()
-{
+describe('RecurlyError', function () {
 
-	it('calls back with a RecurlyError object on account creation errors', function(done)
-	{
+	it('calls back with a RecurlyError object on account creation errors', function (done) {
 		var data =
 		{
 			id: uuid.v4(),
@@ -620,8 +543,7 @@ describe('RecurlyError', function()
 			company_name: 'Yoyodyne Propulsion Systems',
 		};
 
-		recurly.Account.create(data, function(err, newAccount)
-		{
+		recurly.Account.create(data, function (err, newAccount) {
 			err.must.be.an.object();
 			err.must.have.property('errors');
 			err.errors.must.be.an.array();
@@ -632,8 +554,7 @@ describe('RecurlyError', function()
 		});
 	});
 
-	it('calls back with a RecurlyError object on transaction errors', function(done)
-	{
+	it('calls back with a RecurlyError object on transaction errors', function (done) {
 		var binfo = new recurly.BillingInfo();
 		binfo.account_code = fresh_account_id;
 		var billing_data =
@@ -646,8 +567,7 @@ describe('RecurlyError', function()
 			verification_value: '111',
 		};
 
-		binfo.update(billing_data, function(err)
-		{
+		binfo.update(billing_data, function (err) {
 			err.must.be.an.object();
 			err.must.have.property('errors');
 			err.errors.must.be.an.array();
@@ -658,14 +578,11 @@ describe('RecurlyError', function()
 
 });
 
-describe('Prerequsites', function()
-{
-	before(function()
-	{
+describe('Prerequsites', function () {
+	before(function () {
 		recurly.setAPIKey('');
 	});
-	it('should raise an error if the API Key has not been set.', function(done)
-	{
+	it('should raise an error if the API Key has not been set.', function (done) {
 		var data =
 		{
 			id: uuid.v4(),
@@ -674,15 +591,13 @@ describe('Prerequsites', function()
 			last_name: 'Whorfin',
 			company_name: 'Yoyodyne Propulsion Systems',
 		};
-		recurly.Account.create(data, function(err, newAccount)
-		{
+		recurly.Account.create(data, function (err, newAccount) {
 			demand(err).exist();
 			err.must.be.an(Error);
 			done();
 		});
 	});
-	after(function()
-	{
+	after(function () {
 		recurly.setAPIKey(config.apikey);
 	});
 });
